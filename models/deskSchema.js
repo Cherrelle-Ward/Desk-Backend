@@ -6,7 +6,7 @@ const deskSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  date: { type: Date, required: true },
+  date: { type: "string", format: "date", required: true },
   userName: { type: String, required: true },
 });
 module.exports = mongoose.model("Booking", deskSchema);

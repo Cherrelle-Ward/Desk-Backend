@@ -12,7 +12,7 @@ const getBookings = async (req, res) => {
 //! get desk booking by date & desk id
 const getBookingByID = async (req, res) => {
   const { deskID, date, userName } = req.body;
-  const deskBooking = await Booking.findOne();
+  const deskBooking = await Booking.find().where({ deskID });
   res.status(200).json(deskBooking);
 };
 
@@ -48,8 +48,5 @@ module.exports = {
   createBooking,
   getBookings,
   deleteBooking,
+  getBookingByID,
 };
-
-// /     const deskBooking = await Booking.deleteOne();
-//     res.status(200).json(deskBooking, "booking deleted");
-//   } else return res.status(404).json({ error: "No such deskID" });
