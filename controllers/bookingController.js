@@ -1,5 +1,5 @@
 const Booking = require("../models/bookingSchema");
-const User = require("..models/userSchema");
+const User = require("../models/userSchema");
 
 const mongoose = require("mongoose");
 
@@ -23,8 +23,8 @@ const getBookingByID = async (req, res) => {
 //! get booking by date
 const getBookingByDate = async (req, res) => {
   const date = req.params.date;
-  console.log("Fecha recibida: ", date);
-  const booking = await Booking.findOne().where('date').equals(date);
+  console.log("booking date: ", date);
+  const booking = await Booking.findOne().where("date").equals(date);
 
   if (!booking) {
     return res.status(400).json({ error: "No such desk booking" });
@@ -40,10 +40,10 @@ const createBooking = async (req, res) => {
 
   /////////////////////////////
 
-  const user = await User.findOne({ userName });
-  if(!user){
-   return res.status(400).json({error: "User not found"})
-  }
+  // const user = await User.findOne({ userName });
+  // if (!user) {
+  //   return res.status(400).json({ error: "User not found" });
+  // }
   let booking = { deskID, userName };
   booking.deskID = deskID;
   booking.userName = userName;
@@ -63,7 +63,7 @@ const createBooking = async (req, res) => {
     //add desk to date
     //update booking
     dateBooked.bookings.push(booking);
-    
+
     try {
       //save booking
       dateBooked.save();
@@ -73,23 +73,22 @@ const createBooking = async (req, res) => {
     return res.status(200).json(dateBooked);
   }
 
+  // //adding doc to database
+  console.log("creating new booking");
+  const newBooking = new Booking({
+    date: date,
+    bookings: {
+      deskID: deskID,
+      userName: userName,
+    },
+  });
 
-// //adding doc to database
-console.log("creating new booking");
-const newBooking = new Booking({
-  date: date,
-  bookings: {
-    deskID: deskID,
-    userName: userName,
-  },
-});
-
-try {
-  const booking = await Booking.create(newBooking);
-  res.status(200).json(booking);
-} catch (error) {
-  res.status(400).json({ error: error.message });
-}
+  try {
+    const booking = await Booking.create(newBooking);
+    res.status(200).json(booking);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 };
 
 //!  delete desk booking desk id & date

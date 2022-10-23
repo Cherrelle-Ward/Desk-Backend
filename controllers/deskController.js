@@ -1,5 +1,5 @@
 const Desk = require("../models/deskSchema");
-// const User = require("..models/userSchema");
+const User = require("../models/userSchema");
 
 const mongoose = require("mongoose");
 
