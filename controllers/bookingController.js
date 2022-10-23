@@ -36,14 +36,15 @@ const getBookingByDate = async (req, res) => {
 //!  create desk booking
 const createBooking = async (req, res) => {
   const { deskID, date, userName } = req.body;
-  //regex to validate date
+  //regex to validate date - stretch goal
 
   /////////////////////////////
+  // if no user created it will return
+  const user = await User.findOne({ userName });
+  if (!user) {
+    return res.status(400).json({ error: "Not a valid User account" });
+  }
 
-  // const user = await User.findOne({ userName });
-  // if (!user) {
-  //   return res.status(400).json({ error: "User not found" });
-  // }
   let booking = { deskID, userName };
   booking.deskID = deskID;
   booking.userName = userName;
@@ -59,7 +60,7 @@ const createBooking = async (req, res) => {
       return res.status(400).json({ error: "Desk already booked" });
     }
 
-    //when data is already booked but desk is not
+    //if the desk is free on that date
     //add desk to date
     //update booking
     dateBooked.bookings.push(booking);
@@ -73,7 +74,7 @@ const createBooking = async (req, res) => {
     return res.status(200).json(dateBooked);
   }
 
-  // //adding doc to database
+  // adding doc to database
   console.log("creating new booking");
   const newBooking = new Booking({
     date: date,
@@ -118,3 +119,12 @@ module.exports = {
   //getBookingByID,
   getBookingByDate,
 };
+
+// create a user, desk, and booking
+// only a user can create a booking
+//if your another user it will say the desk is already booked
+//if a non valid user tries to book it throws error of not valid user
+
+// catch errors for desks not in db && user - cant create that booking
+
+//delete based on desk id and date if the user exists ?
