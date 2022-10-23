@@ -3,10 +3,8 @@ const mongoose = require("mongoose");
 
 const deskSchema = new mongoose.Schema({
   deskID: {
-    type: Number,
+    type: mongoose.ObjectId,
     required: true,
   },
-  date: { type: "string", format: "date", required: true },
-  userName: { type: String, required: true },
 });
-module.exports = mongoose.model("Booking", deskSchema);
+module.exports = mongoose.model("Desk", deskSchema);

@@ -4,7 +4,8 @@ const cors = require("cors");
 const express = require("express");
 const mongoose = require("mongoose");
 
-const deskRoutes = require("./routes/deskBookingRoutes.js");
+const deskRoutes = require("./routes/deskRoutes");
+const bookingRoutes = require("./routes/bookingRoutes");
 
 // express app
 const app = express();
@@ -18,17 +19,19 @@ app.use((req, res, next) => {
 });
 
 // routes
-app.use("/", deskRoutes);
+app.use("/desk", deskRoutes);
+app.use("/booking", bookingRoutes);
 
 //Database connection
+console.log(process.env.REACT_APP_MONGO_URI);
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.REACT_APP_MONGO_URI)
   .then(() => {
     // listen for requests
-    app.listen(process.env.PORT, () => {
+    app.listen(process.env.REACT_APP_PORT, () => {
       console.log(
         "listening on port & connected to the database",
-        process.env.PORT
+        process.env.REACT_APP_PORT
       );
     });
   })
