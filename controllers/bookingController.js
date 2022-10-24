@@ -2,6 +2,7 @@ const Booking = require("../models/bookingSchema");
 const User = require("../models/userSchema");
 
 const mongoose = require("mongoose");
+const { createIndexes } = require("../models/bookingSchema");
 
 //! get desk booking
 const getBookings = async (req, res) => {
@@ -40,10 +41,10 @@ const createBooking = async (req, res) => {
 
   /////////////////////////////
   // if no user created it will return
-  const user = await User.findOne({ userName });
-  if (!user) {
-    return res.status(400).json({ error: "Not a valid User account" });
-  }
+  // const user = await User.findOne({ userName });
+  // if (!user) {
+  //   return res.status(400).json({ error: "Not a valid User account" });
+  // }
 
   let booking = { deskID, userName };
   booking.deskID = deskID;
@@ -92,25 +93,51 @@ const createBooking = async (req, res) => {
   }
 };
 
-//!  delete desk booking desk id & date
+// //!  delete desk booking desk id & date
+
 const deleteBooking = async (req, res) => {
-  const { id, date } = req.params;
+  const { id } = req.params;
+  const { date } = req.body;
+
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({ error: "Not a valid id" });
   }
 
-  const desk = await Booking.find().where({ deskID: id });
-  booking = desk.bookings.filter((booking) => booking.date == date);
+  try {
+    const findDate = await Booking.findOne({ date });
 
-  if (!booking) {
-    return res.status(400).json({ error: "No such desk booking" });
+    // console.log(JSON.stringify(findDate.bookings));
+
+    if (findDate) {
+      const booking = await Booking.updateOne(
+        { date: date },
+        { $pull: { bookings: { _id: id } } }
+      );
+      res.status(200).json(booking);
+    }
+  } catch (error) {
+    return res.status(400).json(error.message);
   }
-
-  desk.bookings.indexOf(booking).remove();
-  Booking.save();
-
-  res.status(200).json(desk);
 };
+
+// const deleteBooking = async (req, res) => {
+//   const { id, date } = req.params;
+//   if (!mongoose.Types.ObjectId.isValid(id)) {
+//     return res.status(400).json({ error: "Not a valid id" });
+//   }
+
+//   const desk = await Booking.find().where({ deskID: id });
+//   booking = desk.bookings.filter((booking) => booking.date == date);
+
+//   if (!booking) {
+//     return res.status(400).json({ error: "No such desk booking" });
+//   }
+
+//   desk.bookings.indexOf(booking).remove();
+//   Booking.save();
+
+//   res.status(200).json(desk);
+// };
 
 module.exports = {
   createBooking,
