@@ -21,15 +21,40 @@ const getUserByID = async (req, res) => {
 //create(POST) a user
 const addUser = async (req, res) => {
   const { userName } = req.body;
+  console.log(userName, "i am userInput");
   try {
-    //  const user = await User.find().where({ userName });
-    //  user = user.UserName.filter((user) => user.userName == userName);
+    let user = "guest";
+    if (user === null) {
+      user = "guest";
+    } else {
+      user = await User.findOne({ userName });
+      if (user.userName == userName) {
+        res.status(200).json({ msg: "User has been signed in" });
+        res.status(200).json(user);
+      }
+      if (user.userName !== userName) {
+        const user = await User.create({ userName });
+        console.log(user, "I am user in create");
+        res.status(200).json(user);
+        res.status(200).json({ msg: "User has been created" });
+      } else {
+        console.log("this is the else");
+      }
+    }
 
-    user = await User.create({ userName });
-    res.status(200).json(user);
+    // for (user1 of user) {
+    //   if (user1 == userName) {
+    //     return "User already exists";
+    //   } else {
+    //     user = await User.create({ userName });
+    //     res.status(200).json(user);
+    //     console.log(user);
+    //   }
   } catch (error) {
     console.log(error.message);
   }
+
+  //todo check if user is already in the system
 };
 
 // delete user
