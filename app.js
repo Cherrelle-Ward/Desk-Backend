@@ -22,12 +22,14 @@ app.use((req, res, next) => {
   next();
 });
 
+let SQLconnection;
+
 rl.question(
   "Which database do you want to connect to?\n1. MongoDB\n2. SQL\n",
   function (response) {
     switch (response) {
       case "1":
-        // ROUTE FILES
+        // MONGO ROUTE FILES
         const deskRoutes = require("./routes/MongoDB/deskRoutes");
         const bookingRoutes = require("./routes/MongoDB/bookingRoutes");
         const userRoutes = require("./routes/MongoDB/userRoutes");
@@ -37,7 +39,7 @@ rl.question(
         app.use("/booking", bookingRoutes);
         app.use("/user", userRoutes);
 
-        //Database connection
+        //MONGO Database connection
         console.log("Connecting to MongoDB at:\n" + process.env.MONGO_URI);
         mongoose
           .connect(process.env.MONGO_URI)
@@ -45,8 +47,7 @@ rl.question(
             // listen for requests
             app.listen(process.env.PORT, () => {
               console.log(
-                "listening on port & connected to the database",
-                process.env.PORT
+                `listening on port ${process.env.PORT} connected to the database`
               );
             });
           })
@@ -59,39 +60,43 @@ rl.question(
 
         break;
       case "2":
-        // ROUTE FILES
+        // SQL ROUTE FILES
         const deskRoutesSQL = require("./routes/SQL/deskRoutes");
         const bookingRoutesSQL = require("./routes/SQL/bookingRoutes");
         const userRoutesSQL = require("./routes/SQL/userRoutes");
 
-        // routes
+        // SQL routes
         app.use("/desk", deskRoutesSQL);
         app.use("/booking", bookingRoutesSQL);
         app.use("/user", userRoutesSQL);
 
-        //Database connection
-        console.log("Connecting to MongoDB at:\n");
-        mysql
-          .createConnection()
-          .then(() => {
-            // listen for requests
-            app.listen(process.env.PORT, () => {
-              console.log(
-                "listening on port & connected to the database",
-                process.env.PORT
-              );
-            });
-          })
-          .catch((err) => {
-            console.log(err);
-          });
+        //SQL Database connection
+        console.log("Connecting to SQL at:\n");
+        SQLconnection = mysql.createConnection({
+          user: "root",
+          host: "localhost",
+          password: process.env.SQL_PASSWORD,
+          database: "deskBookings",
+        });
 
-        //400 no to request
-        // 200 everythings ok
+        SQLconnection.connect(() => {
+          app.listen(process.env.PORT, () => {
+            console.log(
+              `listening on port ${process.env.PORT} & connected to the database`
+            );
+          });
+        });
 
         break;
       default:
+        console.log(`Command not recognized!`);
         break;
     }
   }
 );
+
+const getSQLConnection = () => {
+  return SQLconnection;
+};
+
+module.exports.getSQLConnection = getSQLConnection;
