@@ -3,11 +3,13 @@ const cors = require("cors");
 
 const express = require("express");
 const mongoose = require("mongoose");
+const mysql = require("mysql2");
 
-// ROUTE FILES
-const deskRoutes = require("./routes/deskRoutes");
-const bookingRoutes = require("./routes/bookingRoutes");
-const userRoutes = require("./routes/userRoutes");
+const readline = require('readline');
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
 
 // express app
 const app = express();
@@ -20,27 +22,74 @@ app.use((req, res, next) => {
   next();
 });
 
-// routes
-app.use("/desk", deskRoutes);
-app.use("/booking", bookingRoutes);
-app.use("/user", userRoutes);
 
-//Database connection
-console.log(process.env.MONGO_URI);
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
-    // listen for requests
-    app.listen(process.env.PORT, () => {
-      console.log(
-        "listening on port & connected to the database",
-        process.env.PORT
-      );
-    });
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+rl.question('Which database do you want to connect to?\n1. MongoDB\n2. SQL\n', function (response) {
+  switch (response) {
+    case '1':
 
-//400 no to request
-// 200 everythings ok
+      // ROUTE FILES
+      const deskRoutes = require("./routes/MongoDB/deskRoutes");
+      const bookingRoutes = require("./routes/MongoDB/bookingRoutes");
+      const userRoutes = require("./routes/MongoDB/userRoutes");
+
+      // routes
+      app.use("/desk", deskRoutes);
+      app.use("/booking", bookingRoutes);
+      app.use("/user", userRoutes);
+
+      //Database connection
+      console.log('Connecting to MongoDB at:\n' + process.env.MONGO_URI);
+      mongoose
+        .connect(process.env.MONGO_URI)
+        .then(() => {
+          // listen for requests
+          app.listen(process.env.PORT, () => {
+            console.log(
+              "listening on port & connected to the database",
+              process.env.PORT
+            );
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+
+      //400 no to request
+      // 200 everythings ok
+
+      break;
+    case '2':
+
+      // ROUTE FILES
+      const deskRoutes = require("./routes/SQL/deskRoutes");
+      const bookingRoutes = require("./routes/SQL/bookingRoutes");
+      const userRoutes = require("./routes/SQL/userRoutes");
+
+      // routes
+      app.use("/desk", deskRoutes);
+      app.use("/booking", bookingRoutes);
+      app.use("/user", userRoutes);
+
+      //Database connection
+      console.log('Connecting to MongoDB at:\n' +);
+      mysql.createConnection().then(() => {
+        // listen for requests
+        app.listen(process.env.PORT, () => {
+          console.log(
+            "listening on port & connected to the database",
+            process.env.PORT
+          );
+        });
+      })
+        .catch((err) => {
+          console.log(err);
+        });
+
+      //400 no to request
+      // 200 everythings ok
+
+      break;
+    default:
+      break;
+  }
+});

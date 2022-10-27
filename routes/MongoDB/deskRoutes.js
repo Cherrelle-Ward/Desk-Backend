@@ -5,7 +5,7 @@ const {
     getDesks,
     addDesk,
     deleteDesk,
-} = require("../controllers/deskController");
+} = require("../../controllers/MongoDB/deskController");
 
 // get desks
 router.get("/", getDesks);

@@ -1,12 +1,11 @@
-const Booking = require("../models/bookingSchema");
-const User = require("../models/userSchema");
+const Booking = require("../../models/bookingSchema");
+const User = require("../../models/userSchema");
 
-const mongoose = require("mongoose");
-const { createIndexes } = require("../models/bookingSchema");
+const { createIndexes } = require("../../models/bookingSchema");
 
 //! get desk booking
 const getBookings = async (req, res) => {
-  const booking = await Booking.find();
+  const booking = await ;
   res.status(200).json(booking);
 };
 
@@ -25,7 +24,7 @@ const getBookingByID = async (req, res) => {
 const getBookingByDate = async (req, res) => {
   const date = req.params.date;
   console.log("booking date: ", date);
-  const booking = await Booking.findOne().where("date").equals(date);
+  const booking = await ;
 
   if (!booking) {
     return res.status(400).json({ error: "No such desk booking" });
@@ -50,7 +49,7 @@ const createBooking = async (req, res) => {
   booking.deskID = deskID;
   booking.userName = userName;
 
-  let dateBooked = await Booking.find().where("date").equals(date).findOne();
+  let dateBooked = await ;
 
   //check if date is already booked
   if (dateBooked) {
