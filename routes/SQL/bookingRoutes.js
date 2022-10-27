@@ -7,7 +7,7 @@ const {
   deleteBooking,
   //getBookingByID,
   getBookingByDate,
-} = require("../controllers/SQL/bookingController");
+} = require("../../controllers/SQL/bookingController");
 
 //get bookings by date
 router.get("/date/:date", getBookingByDate);

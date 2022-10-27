@@ -5,10 +5,10 @@ const express = require("express");
 const mongoose = require("mongoose");
 const mysql = require("mysql2");
 
-const readline = require('readline');
+const readline = require("readline");
 const rl = readline.createInterface({
   input: process.stdin,
-  output: process.stdout
+  output: process.stdout,
 });
 
 // express app
@@ -22,74 +22,76 @@ app.use((req, res, next) => {
   next();
 });
 
+rl.question(
+  "Which database do you want to connect to?\n1. MongoDB\n2. SQL\n",
+  function (response) {
+    switch (response) {
+      case "1":
+        // ROUTE FILES
+        const deskRoutes = require("./routes/MongoDB/deskRoutes");
+        const bookingRoutes = require("./routes/MongoDB/bookingRoutes");
+        const userRoutes = require("./routes/MongoDB/userRoutes");
 
-rl.question('Which database do you want to connect to?\n1. MongoDB\n2. SQL\n', function (response) {
-  switch (response) {
-    case '1':
+        // routes
+        app.use("/desk", deskRoutes);
+        app.use("/booking", bookingRoutes);
+        app.use("/user", userRoutes);
 
-      // ROUTE FILES
-      const deskRoutes = require("./routes/MongoDB/deskRoutes");
-      const bookingRoutes = require("./routes/MongoDB/bookingRoutes");
-      const userRoutes = require("./routes/MongoDB/userRoutes");
-
-      // routes
-      app.use("/desk", deskRoutes);
-      app.use("/booking", bookingRoutes);
-      app.use("/user", userRoutes);
-
-      //Database connection
-      console.log('Connecting to MongoDB at:\n' + process.env.MONGO_URI);
-      mongoose
-        .connect(process.env.MONGO_URI)
-        .then(() => {
-          // listen for requests
-          app.listen(process.env.PORT, () => {
-            console.log(
-              "listening on port & connected to the database",
-              process.env.PORT
-            );
+        //Database connection
+        console.log("Connecting to MongoDB at:\n" + process.env.MONGO_URI);
+        mongoose
+          .connect(process.env.MONGO_URI)
+          .then(() => {
+            // listen for requests
+            app.listen(process.env.PORT, () => {
+              console.log(
+                "listening on port & connected to the database",
+                process.env.PORT
+              );
+            });
+          })
+          .catch((err) => {
+            console.log(err);
           });
-        })
-        .catch((err) => {
-          console.log(err);
-        });
 
-      //400 no to request
-      // 200 everythings ok
+        //400 no to request
+        // 200 everythings ok
 
-      break;
-    case '2':
+        break;
+      case "2":
+        // ROUTE FILES
+        const deskRoutesSQL = require("./routes/SQL/deskRoutes");
+        const bookingRoutesSQL = require("./routes/SQL/bookingRoutes");
+        const userRoutesSQL = require("./routes/SQL/userRoutes");
 
-      // ROUTE FILES
-      const deskRoutes = require("./routes/SQL/deskRoutes");
-      const bookingRoutes = require("./routes/SQL/bookingRoutes");
-      const userRoutes = require("./routes/SQL/userRoutes");
+        // routes
+        app.use("/desk", deskRoutesSQL);
+        app.use("/booking", bookingRoutesSQL);
+        app.use("/user", userRoutesSQL);
 
-      // routes
-      app.use("/desk", deskRoutes);
-      app.use("/booking", bookingRoutes);
-      app.use("/user", userRoutes);
+        //Database connection
+        console.log("Connecting to MongoDB at:\n");
+        mysql
+          .createConnection()
+          .then(() => {
+            // listen for requests
+            app.listen(process.env.PORT, () => {
+              console.log(
+                "listening on port & connected to the database",
+                process.env.PORT
+              );
+            });
+          })
+          .catch((err) => {
+            console.log(err);
+          });
 
-      //Database connection
-      console.log('Connecting to MongoDB at:\n' +);
-      mysql.createConnection().then(() => {
-        // listen for requests
-        app.listen(process.env.PORT, () => {
-          console.log(
-            "listening on port & connected to the database",
-            process.env.PORT
-          );
-        });
-      })
-        .catch((err) => {
-          console.log(err);
-        });
+        //400 no to request
+        // 200 everythings ok
 
-      //400 no to request
-      // 200 everythings ok
-
-      break;
-    default:
-      break;
+        break;
+      default:
+        break;
+    }
   }
-});
+);

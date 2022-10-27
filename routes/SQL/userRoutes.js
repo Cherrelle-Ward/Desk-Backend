@@ -7,7 +7,7 @@ const {
   getUserByID,
   deleteUser,
   updateUser,
-} = require("../controllers/SQL/userController");
+} = require("../../controllers/SQL/userController");
 
 // getting all users
 router.get("/", getUsers);
