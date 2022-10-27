@@ -5,118 +5,153 @@ const { getSQLConnection } = require("../../app.js");
 const getBookings = async (req, res) => {
   const SQLConnection = getSQLConnection();
 
-  SQLConnection.query("SELECT * FROM booking", (error, results) => {
-    if (error) throw error;
-    console.log(results, "i am result");
-    res.status(200).json(results);
-  });
+  SQLConnection.query(
+    "SELECT * FROM booking b INNER JOIN user u ON b.user_number = u.user_number",
+    (error, results) => {
+      if (error) throw error;
+      console.log(results, "i am result");
+      res.status(200).json(results);
+    }
+  );
 };
 
 // //! get booking by date
-// // const getBookingByDate = async (req, res) => {
-// //   const date = req.params.date;
-// //   console.log("booking date: ", date);
-// //   const booking = await ;
 
-// //   if (!booking) {
-// //     return res.status(400).json({ error: "No such desk booking" });
-// //   }
+const getBookingByDate = async (req, res) => {
+  const date = req.params.date;
+  const SQLConnection = getSQLConnection();
+  console.log("booking date: ", date);
 
-// //   res.status(200).json(booking);
-// // };
+  SQLConnection.query(
+    `SELECT b.deskID, b._id, u.userName FROM booking b INNER JOIN user u ON b.user_number = u.user_number WHERE b.date = '${date}'`,
+    (error, results) => {
+      if (error) throw error;
+      console.log(results, "i am result");
+      if (!results) {
+        return res.status(400).json({ error: "No such desk booking" });
+      } else {
+        res.status(200).json(results);
+      }
+    }
+  );
+};
 
 // //!  create desk booking
-// const createBooking = async (req, res) => {
-//   const { deskID, date, userName } = req.body;
-//   //regex to validate date - stretch goal
+const createBooking = async (req, res) => {
+  const { deskID, date, userName } = req.body;
+  const SQLConnection = getSQLConnection();
 
-//   /////////////////////////////
-//   // if no user created it will return
-//   // const user = await User.findOne({ userName });
-//   // if (!user) {
-//   //   return res.status(400).json({ error: "Not a valid User account" });
-//   // }
+  //regex to validate date - stretch goal
 
-//   let booking = { deskID, userName };
-//   booking.deskID = deskID;
-//   booking.userName = userName;
+  /////////////////////////////
+  // if no user created it will return
+  // const user = await User.findOne({ userName });
+  // if (!user) {
+  //   return res.status(400).json({ error: "Not a valid User account" });
+  // }
 
-//   let dateBooked = await ;
+  let user_number = 0;
 
-//   //check if date is already booked
-//   if (dateBooked) {
-//     const deskBooked = dateBooked.bookings.filter(
-//       (desk) => String(desk.deskID) === String(booking.deskID)
-//     );
-//     if (deskBooked.length > 0) {
-//       return res.status(400).json({ error: "Desk already booked" });
-//     }
+  let booking = { deskID, userName };
+  booking.deskID = deskID;
+  booking.userName = userName;
 
-//     //if the desk is free on that date
-//     //add desk to date
-//     //update booking
-//     dateBooked.bookings.push(booking);
+  // checking the date
+  SQLConnection.query(
+    `SELECT date FROM booked_date WHERE date = '${date}'`,
+    (error, results) => {
+      if (error) throw error;
+      console.log(error, "i am error");
+      console.log(results, "i am date result");
 
-//     try {
-//       //save booking
-//       dateBooked.save();
-//     } catch (error) {
-//       console.log(error);
-//     }
-//     return res.status(200).json(dateBooked);
-//   }
+      if (!results) {
+        // adding booked date to booking
+        SQLConnection.query(
+          `INSERT INTO booked_date (date, total_bookings) VALUES ('${date}', 0)`,
+          (error, results) => {
+            if (error) throw error;
+            console.log(results, "i am date result");
+          }
+        );
+      }
+    }
+  );
+  // get userName
+  SQLConnection.query(
+    `SELECT user_number FROM user WHERE userName = '${userName}' `,
+    (error, results) => {
+      if (error) throw error;
+      console.log(error, "i am error");
+      console.log(results, "i am user result 1");
+      // console.log(results[0].user_number, "results[0].user_number");
 
-//   // adding doc to database
-//   console.log("creating new booking");
-//   const newBooking = new Booking({
-//     date: date,
-//     bookings: {
-//       deskID: deskID,
-//       userName: userName,
-//     },
-//   });
+      const createBooking = () => {
+        // add booking to booking table
+        SQLConnection.query(
+          `INSERT INTO booking (date, user_number, deskID) VALUES ('${date}', ${user_number}, ${deskID})`,
+          (error, results) => {
+            if (error) throw error;
+            console.log(results, "i am booking result");
+            if (results) {
+              res.status(200).json(results);
+            }
+          }
+        );
+      };
 
-//   try {
-//     const booking = await Booking.create(newBooking);
-//     res.status(200).json(booking);
-//   } catch (error) {
-//     res.status(400).json({ error: error.message });
-//   }
-// };
+      if (results[0] === undefined) {
+        // adding a user to user table
+        SQLConnection.query(
+          `INSERT INTO user (userName) VALUES ('${userName}')`,
+          // Insert does not include it's created row in its result so need to perform a select query again to get it
+          (error, results) => {
+            if (error) throw error;
+
+            SQLConnection.query(
+              `SELECT user_number FROM user WHERE userName = '${userName}' `,
+              (error, results) => {
+                if (error) throw error;
+                console.log(error, "i am error");
+                console.log(results, "i am user result 2");
+                user_number = results[0].user_number;
+                createBooking();
+              }
+            );
+          }
+        );
+      } else {
+        console.log(results, "i am user result 3");
+        user_number = results[0].user_number;
+        createBooking();
+      }
+      console.log(user_number, "user_number!!!!!!!");
+    }
+  );
+};
 
 // // //!  delete desk booking desk id & date
 
-// const deleteBooking = async (req, res) => {
-//   const { id } = req.params;
-//   const { date } = req.body;
+const deleteBooking = async (req, res) => {
+  const { id } = req.params;
+  const { date } = req.body;
+  const SQLConnection = getSQLConnection();
 
-//   if (!mongoose.Types.ObjectId.isValid(id)) {
-//     return res.status(400).json({ error: "Not a valid id" });
-//   }
-
-//   try {
-//     const findDate = await Booking.findOne({ date });
-
-//     // console.log(JSON.stringify(findDate.bookings));
-
-//     if (findDate) {
-//       const booking = await Booking.updateOne(
-//         { date: date },
-//         { $pull: { bookings: { _id: id } } }
-//       );
-//       res.status(200).json(booking);
-//     }
-//   } catch (error) {
-//     return res.status(400).json(error.message);
-//   }
-// };
+  SQLConnection.query(
+    `DELETE FROM booking WHERE _id = ${id}`,
+    (error, results) => {
+      if (error) throw error;
+      console.log(error, "i am error");
+      console.log(id, "i am id");
+    }
+  );
+};
 
 module.exports = {
-  // createBooking,
+  createBooking,
   getBookings,
-  // deleteBooking,
+  deleteBooking,
   //getBookingByID,
-  // getBookingByDate,
+  getBookingByDate,
 };
 
 // WE NEED to :
