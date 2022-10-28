@@ -64,67 +64,73 @@ const createBooking = async (req, res) => {
       console.log(error, "i am error");
       console.log(results, "i am date result");
 
-      if (!results) {
+      const continueBooking = () => {
+        // get userName
+        SQLConnection.query(
+          `SELECT user_number FROM user WHERE userName = '${userName}' `,
+          (error, results) => {
+            if (error) throw error;
+            console.log(error, "i am error");
+            console.log(results, "i am user result 1");
+            // console.log(results[0].user_number, "results[0].user_number");
+
+            const createBooking = () => {
+              // add booking to booking table
+              SQLConnection.query(
+                `INSERT INTO booking (date, user_number, deskID) VALUES ('${date}', ${user_number}, ${deskID})`,
+                (error, results) => {
+                  if (error) throw error;
+                  console.log(results, "i am booking result");
+                  if (results) {
+                    res.status(200).json(results);
+                  }
+                }
+              );
+            };
+
+            if (results[0] === undefined) {
+              // adding a user to user table
+              SQLConnection.query(
+                `INSERT INTO user (userName) VALUES ('${userName}')`,
+                // Insert does not include it's created row in its result so need to perform a select query again to get it
+                (error, results) => {
+                  if (error) throw error;
+
+                  SQLConnection.query(
+                    `SELECT user_number FROM user WHERE userName = '${userName}' `,
+                    (error, results) => {
+                      if (error) throw error;
+                      console.log(error, "i am error");
+                      console.log(results, "i am user result 2");
+                      user_number = results[0].user_number;
+                      createBooking();
+                    }
+                  );
+                }
+              );
+            } else {
+              console.log(results, "i am user result 3");
+              user_number = results[0].user_number;
+              createBooking();
+            }
+            console.log(user_number, "user_number!!!!!!!");
+          }
+        );
+      };
+
+      if (results[0] === undefined) {
         // adding booked date to booking
         SQLConnection.query(
           `INSERT INTO booked_date (date, total_bookings) VALUES ('${date}', 0)`,
           (error, results) => {
             if (error) throw error;
             console.log(results, "i am date result");
-          }
-        );
-      }
-    }
-  );
-  // get userName
-  SQLConnection.query(
-    `SELECT user_number FROM user WHERE userName = '${userName}' `,
-    (error, results) => {
-      if (error) throw error;
-      console.log(error, "i am error");
-      console.log(results, "i am user result 1");
-      // console.log(results[0].user_number, "results[0].user_number");
-
-      const createBooking = () => {
-        // add booking to booking table
-        SQLConnection.query(
-          `INSERT INTO booking (date, user_number, deskID) VALUES ('${date}', ${user_number}, ${deskID})`,
-          (error, results) => {
-            if (error) throw error;
-            console.log(results, "i am booking result");
-            if (results) {
-              res.status(200).json(results);
-            }
-          }
-        );
-      };
-
-      if (results[0] === undefined) {
-        // adding a user to user table
-        SQLConnection.query(
-          `INSERT INTO user (userName) VALUES ('${userName}')`,
-          // Insert does not include it's created row in its result so need to perform a select query again to get it
-          (error, results) => {
-            if (error) throw error;
-
-            SQLConnection.query(
-              `SELECT user_number FROM user WHERE userName = '${userName}' `,
-              (error, results) => {
-                if (error) throw error;
-                console.log(error, "i am error");
-                console.log(results, "i am user result 2");
-                user_number = results[0].user_number;
-                createBooking();
-              }
-            );
+            continueBooking();
           }
         );
       } else {
-        console.log(results, "i am user result 3");
-        user_number = results[0].user_number;
-        createBooking();
+        continueBooking();
       }
-      console.log(user_number, "user_number!!!!!!!");
     }
   );
 };
@@ -142,7 +148,7 @@ const deleteBooking = async (req, res) => {
       if (error) throw error;
       console.log(error, "i am error");
       console.log(id, "i am id");
-      res.status(200);
+      res.status(200).json();
     }
   );
 };
