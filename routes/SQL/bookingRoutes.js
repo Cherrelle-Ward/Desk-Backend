@@ -9,14 +9,14 @@ const {
   getBookingByDate,
 } = require("../../controllers/SQL/bookingController");
 
-//get bookings by date
+// get bookings by date
 router.get("/date/:date", getBookingByDate);
 
 // get booking
 router.get("/", getBookings);
 
 //get a booking by ID
-//router.get("/:id", getBookingByID);
+// router.get("/:id", getBookingByID);
 
 // create a new booking
 router.post("/", createBooking);
