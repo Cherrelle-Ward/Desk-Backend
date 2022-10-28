@@ -142,6 +142,7 @@ const deleteBooking = async (req, res) => {
       if (error) throw error;
       console.log(error, "i am error");
       console.log(id, "i am id");
+      res.status(200);
     }
   );
 };
