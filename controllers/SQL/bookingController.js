@@ -23,14 +23,23 @@ const getBookingByDate = async (req, res) => {
   console.log("booking date: ", date);
 
   SQLConnection.query(
-    `SELECT b.deskID, b._id, u.userName FROM booking b INNER JOIN user u ON b.user_number = u.user_number WHERE b.date = '${date}'`,
+    `SELECT total_bookings FROM booked_date WHERE date = '${date}'`,
     (error, results) => {
       if (error) throw error;
       console.log(results, "i am result");
-      if (!results) {
-        return res.status(400).json({ error: "No such desk booking" });
-      } else {
-        res.status(200).json(results);
+      if (results) {
+        SQLConnection.query(
+          `SELECT b.deskID, b._id, u.userName FROM booking b INNER JOIN user u ON b.user_number = u.user_number WHERE b.date = '${date}'`,
+          (error, results) => {
+            if (error) throw error;
+            console.log(results, "i am result");
+            if (!results) {
+              return res.status(400).json({ error: "No such desk booking" });
+            } else {
+              res.status(200).json(results);
+            }
+          }
+        );
       }
     }
   );
@@ -51,6 +60,7 @@ const createBooking = async (req, res) => {
   // }
 
   let user_number = 0;
+  let total_bookings = 0;
 
   let booking = { deskID, userName };
   booking.deskID = deskID;
@@ -58,7 +68,7 @@ const createBooking = async (req, res) => {
 
   // checking the date
   SQLConnection.query(
-    `SELECT date FROM booked_date WHERE date = '${date}'`,
+    `SELECT total_bookings FROM booked_date WHERE date = '${date}'`,
     (error, results) => {
       if (error) throw error;
       console.log(error, "i am error");
@@ -81,6 +91,10 @@ const createBooking = async (req, res) => {
                 (error, results) => {
                   if (error) throw error;
                   console.log(results, "i am booking result");
+                  total_bookings++;
+                  SQLConnection.query(
+                    `UPDATE booked_date SET total_bookings = ${total_bookings} WHERE date = '${date}'`
+                  );
                   if (results) {
                     res.status(200).json(results);
                   }
@@ -121,7 +135,7 @@ const createBooking = async (req, res) => {
       if (results[0] === undefined) {
         // adding booked date to booking
         SQLConnection.query(
-          `INSERT INTO booked_date (date, total_bookings) VALUES ('${date}', 0)`,
+          `INSERT INTO booked_date (date, total_bookings) VALUES ('${date}', ${total_bookings})`,
           (error, results) => {
             if (error) throw error;
             console.log(results, "i am date result");
@@ -129,6 +143,7 @@ const createBooking = async (req, res) => {
           }
         );
       } else {
+        total_bookings = results[0].total_bookings;
         continueBooking();
       }
     }
@@ -142,12 +157,34 @@ const deleteBooking = async (req, res) => {
   const { date } = req.body;
   const SQLConnection = getSQLConnection();
 
+  let total_bookings = 0;
+
   SQLConnection.query(
     `DELETE FROM booking WHERE _id = ${id}`,
     (error, results) => {
       if (error) throw error;
       console.log(error, "i am error");
       console.log(id, "i am id");
+      SQLConnection.query(
+        `SELECT total_bookings FROM booked_date WHERE date = '${date}'`,
+        (error, results) => {
+          if (error) throw error;
+          console.log(error, "i am error");
+          if (results) {
+            total_bookings = results[0].total_bookings;
+            total_bookings--;
+            if (total_bookings === 0) {
+              SQLConnection.query(
+                `DELETE FROM booked_date WHERE date = '${date}'`
+              );
+            } else {
+              SQLConnection.query(
+                `UPDATE booked_date SET total_bookings = ${total_bookings} WHERE date = '${date}'`
+              );
+            }
+          }
+        }
+      );
       res.status(200).json();
     }
   );
