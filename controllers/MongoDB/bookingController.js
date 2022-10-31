@@ -1,8 +1,8 @@
-const Booking = require("../models/bookingSchema");
-const User = require("../models/userSchema");
+const Booking = require("../../models/bookingSchema");
+const User = require("../../models/userSchema");
 
 const mongoose = require("mongoose");
-const { createIndexes } = require("../models/bookingSchema");
+const { createIndexes } = require("../../models/bookingSchema");
 
 //! get desk booking
 const getBookings = async (req, res) => {

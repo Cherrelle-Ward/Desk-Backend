@@ -7,7 +7,7 @@ const {
   deleteBooking,
   //getBookingByID,
   getBookingByDate,
-} = require("../controllers/bookingController");
+} = require("../../controllers/MongoDB/bookingController");
 
 //get bookings by date
 router.get("/date/:date", getBookingByDate);
